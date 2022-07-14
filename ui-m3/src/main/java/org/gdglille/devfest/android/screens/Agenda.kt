@@ -10,6 +10,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.gdglille.devfest.android.components.talks.NoFavoriteTalks
@@ -31,7 +33,9 @@ fun Agenda(
         NoFavoriteTalks()
     } else {
         LazyColumn(
-            modifier = modifier,
+            modifier = modifier.semantics {
+                testTag = "schedule_list"
+            },
             contentPadding = PaddingValues(vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -42,7 +46,11 @@ fun Agenda(
                     isLoading = isLoading,
                     onTalkClicked = onTalkClicked,
                     onFavoriteClicked = onFavoriteClicked,
-                    modifier = Modifier.animateItemPlacement()
+                    modifier = Modifier
+                        .semantics {
+                            testTag = "schedule_item $it"
+                        }
+                        .animateItemPlacement()
                 )
             }
         }
