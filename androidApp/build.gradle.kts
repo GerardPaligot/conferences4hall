@@ -4,6 +4,7 @@ import extensions.toProperties
 plugins {
     id("conferences4hall.android.application")
     id("conferences4hall.quality")
+    id("com.jraska.module.graph.assertion")
 }
 
 val versionMajor = 2

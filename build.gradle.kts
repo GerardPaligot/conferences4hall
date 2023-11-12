@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         google()
         mavenCentral()
@@ -12,6 +13,7 @@ buildscript {
         classpath(libs.google.services.gradlePlugin)
         classpath(libs.google.firebase.crashlytics.gradlePlugin)
         classpath(libs.android.gradlePlugin)
+        classpath("com.jraska.module.graph.assertion:plugin:2.5.0-LOCAL")
     }
 }
 
