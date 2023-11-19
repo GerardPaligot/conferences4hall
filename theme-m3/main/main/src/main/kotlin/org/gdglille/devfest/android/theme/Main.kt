@@ -1,5 +1,6 @@
 package org.gdglille.devfest.android.theme
 
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
@@ -16,6 +17,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun Main(
     openfeedbackFirebaseConfig: OpenFeedbackFirebaseConfig,
+    windowSizeClass: WindowSizeClass,
     launchUrl: (String) -> Unit,
     onContactExportClicked: (ExportNetworkingUi) -> Unit,
     onReportByPhoneClicked: (String) -> Unit,
@@ -33,6 +35,7 @@ fun Main(
                 MainNavigation(
                     startDestination = (uiState.value as MainUiState.Success).startDestination,
                     openfeedbackFirebaseConfig = openfeedbackFirebaseConfig,
+                    windowSizeClass = windowSizeClass,
                     launchUrl = launchUrl,
                     onContactExportClicked = onContactExportClicked,
                     onReportByPhoneClicked = onReportByPhoneClicked,

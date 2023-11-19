@@ -1,6 +1,5 @@
 package org.gdglille.devfest.android.theme.m3.schedules.feature
 
-import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
@@ -9,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +17,7 @@ import org.gdglille.devfest.android.theme.m3.schedules.screens.ScheduleListHoriz
 import org.gdglille.devfest.android.theme.m3.schedules.screens.ScheduleListVerticalPager
 import org.gdglille.devfest.android.theme.m3.style.R
 import org.gdglille.devfest.android.theme.m3.style.Scaffold
+import org.gdglille.devfest.android.theme.m3.style.actions.TopActionsUi
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -29,11 +28,13 @@ fun ScheduleListCompactVM(
     onScheduleStarted: () -> Unit,
     onFilterClicked: () -> Unit,
     onTalkClicked: (id: String) -> Unit,
+    showFilterIcon: Boolean,
+    showInVertical: Boolean,
     modifier: Modifier = Modifier,
+    columnCount: Int = 1,
     viewModel: ScheduleListViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
-    val configuration = LocalConfiguration.current
     val title = stringResource(id = R.string.screen_agenda)
     LaunchedEffect(key1 = Unit) {
         onScheduleStarted()
@@ -60,7 +61,7 @@ fun ScheduleListCompactVM(
             Scaffold(
                 title = title,
                 modifier = modifier,
-                topActions = modelUi.scheduleUi.topActionsUi,
+                topActions = if (!showFilterIcon) TopActionsUi() else modelUi.scheduleUi.topActionsUi,
                 tabActions = modelUi.scheduleUi.tabActionsUi,
                 onActionClicked = {
                     when (it.id) {
@@ -70,8 +71,8 @@ fun ScheduleListCompactVM(
                     }
                 }
             ) {
-                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    ScheduleListHorizontalPager(
+                if (showInVertical) {
+                    ScheduleListVerticalPager(
                         agendas = modelUi.scheduleUi.schedules,
                         pagerState = pagerState,
                         onTalkClicked = onTalkClicked,
@@ -82,7 +83,7 @@ fun ScheduleListCompactVM(
                         modifier = Modifier.padding(it)
                     )
                 } else {
-                    ScheduleListVerticalPager(
+                    ScheduleListHorizontalPager(
                         agendas = modelUi.scheduleUi.schedules,
                         pagerState = pagerState,
                         onTalkClicked = onTalkClicked,
@@ -90,6 +91,7 @@ fun ScheduleListCompactVM(
                             viewModel.markAsFavorite(context, talkItem)
                         },
                         isLoading = false,
+                        columnCount = columnCount,
                         modifier = Modifier.padding(it)
                     )
                 }

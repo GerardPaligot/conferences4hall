@@ -1,15 +1,19 @@
 package org.gdglille.devfest.android.theme
 
+import android.content.res.Configuration
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigation.suite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigation.suite.NavigationSuiteScaffold
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -22,8 +26,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import io.openfeedback.android.viewmodels.OpenFeedbackFirebaseConfig
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import org.gdglille.devfest.android.theme.m3.events.feature.EventListVM
 import org.gdglille.devfest.android.theme.m3.infos.feature.InfoCompactVM
 import org.gdglille.devfest.android.theme.m3.infos.feature.TicketQrCodeScanner
@@ -33,9 +35,9 @@ import org.gdglille.devfest.android.theme.m3.networking.feature.ProfileInputVM
 import org.gdglille.devfest.android.theme.m3.networking.feature.VCardQrCodeScanner
 import org.gdglille.devfest.android.theme.m3.partners.feature.PartnerDetailOrientableVM
 import org.gdglille.devfest.android.theme.m3.partners.feature.PartnersListCompactVM
-import org.gdglille.devfest.android.theme.m3.schedules.feature.AgendaFiltersVM
+import org.gdglille.devfest.android.theme.m3.schedules.feature.AgendaFiltersCompactVM
 import org.gdglille.devfest.android.theme.m3.schedules.feature.ScheduleDetailOrientableVM
-import org.gdglille.devfest.android.theme.m3.schedules.feature.ScheduleListCompactVM
+import org.gdglille.devfest.android.theme.m3.schedules.feature.ScheduleListAdaptive
 import org.gdglille.devfest.android.theme.m3.speakers.feature.SpeakerDetailOrientableVM
 import org.gdglille.devfest.android.theme.m3.speakers.feature.SpeakersListCompactVM
 import org.gdglille.devfest.android.theme.m3.style.appbars.iconColor
@@ -45,14 +47,12 @@ import org.gdglille.devfest.models.ui.convertToModelUi
 import org.koin.androidx.compose.koinViewModel
 
 @Suppress("LongMethod")
-@OptIn(
-    ExperimentalMaterial3AdaptiveNavigationSuiteApi::class, ExperimentalCoroutinesApi::class,
-    FlowPreview::class
-)
+@OptIn(ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
 @Composable
 fun MainNavigation(
     startDestination: String,
     openfeedbackFirebaseConfig: OpenFeedbackFirebaseConfig,
+    windowSizeClass: WindowSizeClass,
     launchUrl: (String) -> Unit,
     onContactExportClicked: (ExportNetworkingUi) -> Unit,
     onReportByPhoneClicked: (String) -> Unit,
@@ -82,6 +82,7 @@ fun MainNavigation(
         }
     }
     val rootUri = "c4h://event"
+    val config = LocalConfiguration.current
     val uiState = viewModel.uiState.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -139,15 +140,24 @@ fun MainNavigation(
                     )
                 }
                 composable(Screen.ScheduleList.route) {
-                    ScheduleListCompactVM(
+                    val showFilterIcon =
+                        (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact)
+                                || (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Medium
+                                && config.orientation == Configuration.ORIENTATION_PORTRAIT)
+                    val columnCount =
+                        if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded) 2 else 1
+                    ScheduleListAdaptive(
                         onScheduleStarted = onScheduleStarted,
                         onFilterClicked = { navController.navigate(Screen.ScheduleFilters.route) },
-                        onTalkClicked = { navController.navigate(Screen.Schedule.route(it)) }
+                        onTalkClicked = { navController.navigate(Screen.Schedule.route(it)) },
+                        showFilterIcon = showFilterIcon,
+                        showInVertical = config.orientation == Configuration.ORIENTATION_PORTRAIT,
+                        columnCount = columnCount
                     )
                 }
                 composable(route = Screen.ScheduleFilters.route) {
-                    AgendaFiltersVM(
-                        onBackClicked = { navController.popBackStack() }
+                    AgendaFiltersCompactVM(
+                        navigationIcon = { Back { navController.popBackStack() } }
                     )
                 }
                 composable(

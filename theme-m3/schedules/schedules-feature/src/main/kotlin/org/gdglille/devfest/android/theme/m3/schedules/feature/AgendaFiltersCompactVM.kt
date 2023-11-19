@@ -7,12 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import org.gdglille.devfest.android.theme.m3.schedules.screens.AgendaFiltersScreen
 import org.gdglille.devfest.android.theme.m3.style.R
+import org.gdglille.devfest.android.theme.m3.style.appbars.AppBarIcons
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AgendaFiltersVM(
-    onBackClicked: () -> Unit,
+fun AgendaFiltersCompactVM(
     modifier: Modifier = Modifier,
+    navigationIcon: @Composable() (AppBarIcons.() -> Unit)? = null,
     viewModel: AgendaFiltersViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState()
@@ -26,8 +27,8 @@ fun AgendaFiltersVM(
                 onFavoriteClick = viewModel::applyFavoriteFilter,
                 onCategoryClick = viewModel::applyCategoryFilter,
                 onFormatClick = viewModel::applyFormatFilter,
-                onBack = onBackClicked,
-                modifier = modifier
+                modifier = modifier,
+                navigationIcon = navigationIcon
             )
         }
     }

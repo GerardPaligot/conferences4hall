@@ -9,6 +9,9 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.ShareCompat
@@ -38,6 +41,7 @@ class MainActivity : ComponentActivity() {
         navController.handleDeepLink(intent)
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -45,6 +49,7 @@ class MainActivity : ComponentActivity() {
 
         val workManager = WorkManager.getInstance(this)
         setContent {
+            val windowSizeClass: WindowSizeClass = calculateWindowSizeClass(this)
             val inDarkTheme = isSystemInDarkTheme()
             DisposableEffect(inDarkTheme) {
                 enableEdgeToEdge(
@@ -62,6 +67,7 @@ class MainActivity : ComponentActivity() {
             val reportAppTarget = stringResource(id = R.string.text_report_app_target)
             Main(
                 openfeedbackFirebaseConfig = openfeedbackFirebaseConfig,
+                windowSizeClass = windowSizeClass,
                 launchUrl = { launchUrl(it) },
                 onContactExportClicked = { export ->
                     val uri: Uri = FileProvider.getUriForFile(

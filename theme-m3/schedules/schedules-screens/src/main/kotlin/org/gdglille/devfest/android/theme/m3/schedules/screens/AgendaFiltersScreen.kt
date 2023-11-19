@@ -17,6 +17,7 @@ import org.gdglille.devfest.android.theme.m3.schedules.ui.filters.FormatListFilt
 import org.gdglille.devfest.android.theme.m3.style.Conferences4HallTheme
 import org.gdglille.devfest.android.theme.m3.style.R
 import org.gdglille.devfest.android.theme.m3.style.Scaffold
+import org.gdglille.devfest.android.theme.m3.style.appbars.AppBarIcons
 import org.gdglille.devfest.models.ui.CategoryUi
 import org.gdglille.devfest.models.ui.FiltersUi
 import org.gdglille.devfest.models.ui.FormatUi
@@ -28,12 +29,12 @@ fun AgendaFiltersScreen(
     onFavoriteClick: (selected: Boolean) -> Unit,
     onCategoryClick: (categoryUi: CategoryUi, selected: Boolean) -> Unit,
     onFormatClick: (formatUi: FormatUi, selected: Boolean) -> Unit,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable (AppBarIcons.() -> Unit)? = null
 ) {
     Scaffold(
         title = stringResource(id = R.string.screen_agenda_filters),
-        navigationIcon = { Back(onClick = onBack) },
+        navigationIcon = navigationIcon,
         modifier = modifier
     ) {
         LazyColumn(
@@ -64,8 +65,7 @@ private fun AgendaFiltersPreview() {
             filtersUi = FiltersUi.fake,
             onFavoriteClick = {},
             onCategoryClick = { _, _ -> },
-            onFormatClick = { _, _ -> },
-            onBack = {}
+            onFormatClick = { _, _ -> }
         )
     }
 }
