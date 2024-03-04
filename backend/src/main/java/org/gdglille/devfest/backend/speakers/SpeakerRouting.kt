@@ -8,12 +8,16 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import org.gdglille.devfest.backend.events.EventDao
+import org.gdglille.devfest.backend.internals.helpers.drive.GoogleDriveDataSource
+import org.gdglille.devfest.backend.internals.helpers.drive.GoogleSheetDataSource
 import org.gdglille.devfest.backend.receiveValidated
 import org.gdglille.devfest.models.inputs.SpeakerInput
 
 fun Route.registerSpeakersRoutes(
     eventDao: EventDao,
-    speakerDao: SpeakerDao
+    speakerDao: SpeakerDao,
+    sheetDataSource: GoogleSheetDataSource,
+    driveDataSource: GoogleDriveDataSource
 ) {
     val repository = SpeakerRepository(eventDao, speakerDao)
 
@@ -38,5 +42,15 @@ fun Route.registerSpeakersRoutes(
         val speakerId = call.parameters["id"]!!
         val speaker = call.receiveValidated<SpeakerInput>()
         call.respond(HttpStatusCode.OK, repository.update(eventId, apiKey, speakerId, speaker))
+    }
+    get("speakers/{id}/drive") {
+        val speakerId = call.parameters["id"]!!
+        call.respond(HttpStatusCode.OK, driveDataSource.list())
+    }
+    post("speakers/{id}/verbatim") {
+        val speakerId = call.parameters["id"]!!
+        val fileId = sheetDataSource.createFile("$speakerId-verbatim")
+        driveDataSource.grantPermission(fileId, "gerard@gdglille.org")
+        call.respond(HttpStatusCode.Created, fileId)
     }
 }

@@ -1,5 +1,13 @@
 package org.gdglille.devfest.backend
 
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
+import com.google.api.services.sheets.v4.Sheets
+import com.google.api.services.sheets.v4.SheetsScopes
+import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.firestore.FirestoreOptions
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
@@ -31,6 +39,8 @@ import org.gdglille.devfest.backend.formats.FormatDao
 import org.gdglille.devfest.backend.formats.registerFormatsRoutes
 import org.gdglille.devfest.backend.internals.helpers.database.BasicDatabase
 import org.gdglille.devfest.backend.internals.helpers.database.Database
+import org.gdglille.devfest.backend.internals.helpers.drive.GoogleDriveDataSource
+import org.gdglille.devfest.backend.internals.helpers.drive.GoogleSheetDataSource
 import org.gdglille.devfest.backend.internals.helpers.image.TranscoderImage
 import org.gdglille.devfest.backend.internals.helpers.secret.Secret
 import org.gdglille.devfest.backend.internals.helpers.storage.Storage
@@ -85,6 +95,24 @@ fun main() {
             }.build()
         )
     )
+    val sheetService = Sheets.Builder(
+        NetHttpTransport(),
+        GsonFactory.getDefaultInstance(),
+        HttpCredentialsAdapter(
+            GoogleCredentials.getApplicationDefault().createScoped(setOf(SheetsScopes.SPREADSHEETS))
+        )
+    )
+        .setApplicationName(gcpProjectId)
+        .build()
+    val driveService = Drive.Builder(
+        GoogleNetHttpTransport.newTrustedTransport(),
+        GsonFactory.getDefaultInstance(),
+        HttpCredentialsAdapter(
+            GoogleCredentials.getApplicationDefault().createScoped(setOf(DriveScopes.DRIVE))
+        )
+    )
+        .setApplicationName(gcpProjectId)
+        .build()
     val database = Database.Factory.create(firestore = firestore, projectName = projectName)
     val basicDatabase = BasicDatabase.Factory.create(firestore = firestore)
     val storage = Storage.Factory.create(
@@ -101,6 +129,8 @@ fun main() {
     val partnerDao = PartnerDao(database, storage)
     val jobDao = JobDao(database)
     val qAndADao = QAndADao(database)
+    val sheetDataSource = GoogleSheetDataSource(sheetService)
+    val driveDataSource = GoogleDriveDataSource(driveService)
     val wldApi = WeLoveDevsApi.Factory.create(enableNetworkLogs = true)
     val geocodeApi = GeocodeApi.Factory.create(
         apiKey = secret["GEOCODE_API_KEY"],
@@ -156,7 +186,7 @@ fun main() {
             )
             route("/events/{eventId}") {
                 registerQAndAsRoutes(eventDao, qAndADao)
-                registerSpeakersRoutes(eventDao, speakerDao)
+                registerSpeakersRoutes(eventDao, speakerDao, sheetDataSource, driveDataSource)
                 registerTalksRoutes(eventDao, speakerDao, talkDao, categoryDao, formatDao)
                 registerCategoriesRoutes(eventDao, categoryDao)
                 registerFormatsRoutes(eventDao, formatDao)
@@ -171,7 +201,13 @@ fun main() {
                 registerPartnersRoutes(geocodeApi, eventDao, partnerDao, jobDao, imageTranscoder)
                 // Third parties
                 registerBilletWebRoutes(eventDao)
-                registerCms4PartnersRoutes(geocodeApi, eventDao, partnerDao, jobDao, imageTranscoder)
+                registerCms4PartnersRoutes(
+                    geocodeApi,
+                    eventDao,
+                    partnerDao,
+                    jobDao,
+                    imageTranscoder
+                )
                 registerConferenceHallRoutes(
                     conferenceHallApi,
                     eventDao,
