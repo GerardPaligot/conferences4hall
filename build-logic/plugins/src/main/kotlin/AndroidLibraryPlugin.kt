@@ -15,6 +15,7 @@ class AndroidLibraryPlugin: Plugin<Project> {
             with(pluginManager) {
                 apply("com.android.library")
                 apply("kotlin-parcelize")
+                apply("org.jetbrains.compose")
                 apply("org.jetbrains.kotlin.android")
             }
             extensions.configure<LibraryExtension> {
